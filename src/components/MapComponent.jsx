@@ -4,9 +4,13 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
+import AppBar from './AppBar';
+import ButtonAppBar from './AppBar';
+import AnchorTemporaryDrawer from './Drawer';
 
 const MapComponent = () => {
     const [positions, setPositions] = useState([]);
+    const [state, setState] = useState({ bottom: false })
     const mapRef = useRef(null);
     const routingControlRef = useRef(null);
 
@@ -51,7 +55,7 @@ const MapComponent = () => {
             setPositions(newPositions);
             updateRoute(newPositions);
 
-            // Opcional: Si deseas trazar rutas según las conexiones en el archivo JSON
+            // Si se desea trazar rutas según las conexiones en el archivo JSON
             const map = mapRef.current;
 
             conexiones.forEach(conn => {
@@ -86,16 +90,27 @@ const MapComponent = () => {
         updateRoute(updatedPositions);
     };
 
+    const toggleDrawer = (anchor, open) => (event) => {
+        if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
+            return;
+        }
+
+        setState({ ...state, [anchor]: open });
+    };
+
     return (
         <>
             <MapContainer
                 center={[51.505, -0.09]}
                 zoom={13}
-                style={{ height: "80vh", width: "100%" }}
+                style={{ height: "80vh", width: "100%", maskRepeat: "no-repeat" }}
                 ref={mapRef}
+                trackResize={true}
+
             >
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    
                 />
                 {positions.map((position, idx) => (
                     <Marker key={idx} position={[position.lat, position.lng]}>
@@ -112,6 +127,8 @@ const MapComponent = () => {
             <hr />
             <p>Ingrese archivo JSON con las ubicaciones</p>
             <input type="file" accept=".json" onChange={handleFileUpload} />
+            <ButtonAppBar metod={toggleDrawer('bottom', true) }/>
+
         </>
     );
 };
