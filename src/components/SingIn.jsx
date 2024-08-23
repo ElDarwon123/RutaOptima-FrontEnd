@@ -12,6 +12,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
 
 function Copyright(props) {
     return (
@@ -31,15 +32,38 @@ function Copyright(props) {
 const defaultTheme = createTheme();
 
 export default function SignIn() {
-    const handleSubmit = (event) => {
+    const navigate = useNavigate();
+    const handleSubmit = async (event) => {
         event.preventDefault();
         const data = new FormData(event.currentTarget);
-        console.log({
-            email: data.get('email'),
-            password: data.get('password'),
-        });
+        const email = data.get('email');
+        const password = data.get('password');
+    
+        try {
+            const response = await fetch('http://localhost:3000/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email, password }),
+            });
+    
+            if (!response.ok) {
+                throw new Error('Invalid credentials');
+            }
+            navigate('/map')
+            const result = await response.json();
+            
+            localStorage.setItem('token', result.token);
+    
+            
+        } catch (error) {
+            console.error('Error:', error);
+           
+        }
     };
-
+    
+    
     return (
         <ThemeProvider theme={defaultTheme}>
             <Container component="main" maxWidth="xs">

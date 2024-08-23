@@ -1,18 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import L from 'leaflet';
 import 'leaflet-routing-machine';
-import AppBar from './AppBar';
 import ButtonAppBar from './AppBar';
 import AnchorTemporaryDrawer from './Drawer';
+import { Button } from '@mui/material';
 
 const MapComponent = () => {
     const [positions, setPositions] = useState([]);
-    const [state, setState] = useState({ bottom: false })
+    const [state, setState] = useState({ bottom: false });
+    const [center, setCenter] = useState([2.4474770389145304, -76.6044044494629])
     const mapRef = useRef(null);
     const routingControlRef = useRef(null);
+    const token = localStorage.getItem('token');
 
     const MapEventsHandler = () => {
         useMapEvents({
@@ -27,7 +28,7 @@ const MapComponent = () => {
 
     const updateRoute = (waypoints) => {
         const map = mapRef.current;
-        
+
         if (routingControlRef.current) {
             map.removeControl(routingControlRef.current);
         }
@@ -98,19 +99,42 @@ const MapComponent = () => {
         setState({ ...state, [anchor]: open });
     };
 
+    const saveLocations = async () => {
+
+        try {
+            const ubicacion = {
+                nombre: "Ubicación 1",
+                posX: 10.1234,
+                posY: -20.5678
+              };
+              fetch('http://localhost:3000/api/ubicaciones', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(ubicacion)
+              })
+              .then(response => response.json())
+              .then(data => console.log('Ubicación guardada:', data))
+              .catch(error => console.error('Error:', error));
+            console.log('Ubicaciones guardadas:', response.data);
+        } catch (error) {
+            console.error('Error al guardar ubicaciones:', error);
+        }
+    };
+
     return (
         <>
             <MapContainer
-                center={[51.505, -0.09]}
+                center={center}
                 zoom={13}
                 style={{ height: "80vh", width: "100%", maskRepeat: "no-repeat" }}
                 ref={mapRef}
                 trackResize={true}
-
             >
                 <TileLayer
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    
                 />
                 {positions.map((position, idx) => (
                     <Marker key={idx} position={[position.lat, position.lng]}>
@@ -127,8 +151,7 @@ const MapComponent = () => {
             <hr />
             <p>Ingrese archivo JSON con las ubicaciones</p>
             <input type="file" accept=".json" onChange={handleFileUpload} />
-            <ButtonAppBar metod={toggleDrawer('bottom', true) }/>
-
+            <Button variant='contained' color='success' onClick={saveLocations}>Guardar Ubicaciones</Button>
         </>
     );
 };

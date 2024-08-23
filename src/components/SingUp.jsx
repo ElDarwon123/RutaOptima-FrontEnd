@@ -12,6 +12,7 @@ import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useNavigate } from 'react-router-dom';
 
 function Copyright(props) {
   return (
@@ -31,14 +32,38 @@ function Copyright(props) {
 const defaultTheme = createTheme();
 
 export default function SignInSide() {
-  const handleSubmit = (event) => {
+  const navigate = useNavigate()
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    });
-  };
+    const email = data.get('email');
+    const password = data.get('password');
+
+    try {
+        const response = await fetch('http://localhost:3000/api/auth/registro', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Error registering user');
+        }
+        navigate('/singin')
+        const result = await response.json();
+        
+        localStorage.setItem('token', result.token);
+
+
+    } catch (error) {
+        console.error('Error:', error);
+        // Handle error (e.g., show error message)
+    }
+};
+
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -46,12 +71,12 @@ export default function SignInSide() {
         <CssBaseline />
         <Grid
           item
-          xs={false}
+          xs={true}
           sm={4}
           md={7}
           sx={{
             backgroundImage:
-              'url("/static/images/templates/templates-images/sign-in-side-bg.png")',
+              'url("https://uploads.dailydot.com/2018/10/olli-the-polite-cat.jpg?auto=compress&fm=pjpg")',
             backgroundColor: (t) =>
               t.palette.mode === 'light' ? t.palette.grey[50] : t.palette.grey[900],
             backgroundSize: 'cover',
@@ -97,10 +122,7 @@ export default function SignInSide() {
                 id="password"
                 autoComplete="current-password"
               />
-              <FormControlLabel
-                control={<Checkbox value="remember" color="primary" />}
-                label="Remember me"
-              />
+              
               <Button
                 type="submit"
                 fullWidth
@@ -114,7 +136,7 @@ export default function SignInSide() {
                   
                 </Grid>
                 <Grid item>
-                  <Link href="#" variant="body2">
+                  <Link href="/singin" variant="body2">
                     {"Do you have an account? Sign In"}
                   </Link>
                 </Grid>
